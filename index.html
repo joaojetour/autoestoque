@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AutoEstoque</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F3;}
+.app{background:#F5F5F3;min-height:100vh;}
+
+/* LOGIN */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+.login-logo{width:64px;height:64px;background:#1D9E75;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:24px;}
+.login-title{font-size:24px;font-weight:500;margin-bottom:6px;text-align:center;}
+.login-sub{font-size:14px;color:#888780;margin-bottom:32px;text-align:center;}
+.login-box{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;}
+.login-input{padding:14px 16px;border-radius:12px;border:0.5px solid rgba(0,0,0,0.2);font-size:16px;background:#fff;color:#1a1a1a;width:100%;text-align:center;letter-spacing:2px;}
+.login-input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15);}
+.login-btn{padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:500;background:#1D9E75;color:#fff;cursor:pointer;width:100%;}
+.login-btn:active{opacity:0.85;}
+.login-error{background:#FAECE7;color:#4A1B0C;border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;display:none;}
+.login-error.show{display:block;}
+
+.header{background:#1D9E75;padding:14px 16px 48px;}
+.header-row{display:flex;align-items:center;justify-content:space-between;}
+.header h1{color:#fff;font-size:17px;font-weight:500;}
+.header p{color:rgba(255,255,255,0.75);font-size:11px;margin-top:1px;}
+.header-num{text-align:right;color:#fff;}
+.header-num span{font-size:28px;font-weight:500;display:block;line-height:1;}
+.header-num small{font-size:10px;opacity:0.75;}
+.logout-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;}
+.body{padding:0 12px;margin-top:-36px;}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.mc{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:12px;}
+.mc-lbl{font-size:11px;color:#888780;margin-bottom:2px;}
+.mc-val{font-size:22px;font-weight:500;line-height:1;}
+.mc-sub{font-size:10px;color:#888780;margin-top:3px;}
+.mv-g{color:#0F6E56;}.mv-c{color:#993C1D;}.mv-b{color:#185FA5;}.mv-a{color:#854F0B;}
+.section-nav{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.section-nav::-webkit-scrollbar{display:none;}
+.nav-pill{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap;cursor:pointer;border:0.5px solid rgba(0,0,0,0.15);background:#fff;color:#888780;-webkit-tap-highlight-color:transparent;}
+.nav-pill.active{background:#1D9E75;color:#fff;border-color:#1D9E75;}
+.section{display:none;}.section.active{display:block;}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.card-hd{padding:11px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between;}
+.card-hd-title{font-size:13px;font-weight:500;}
+.modelo-bloco{border-bottom:0.5px solid rgba(0,0,0,0.08);}
+.modelo-bloco:last-child{border-bottom:none;}
+.modelo-row{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;background:#F5F5F3;-webkit-tap-highlight-color:transparent;}
+.modelo-nome{font-size:14px;font-weight:500;flex:1;}
+.modelo-body{display:none;}.modelo-body.open{display:block;}
+.versao-bloco{border-top:0.5px solid rgba(0,0,0,0.08);}
+.versao-row{display:flex;align-items:center;gap:8px;padding:8px 14px 8px 28px;background:#fff;}
+.versao-nome{font-size:12px;font-weight:500;color:#888780;flex:1;}
+.cor-row{display:flex;align-items:center;padding:7px 14px 7px 42px;border-top:0.5px solid rgba(0,0,0,0.06);}
+.cor-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-right:8px;}
+.cor-nome{font-size:12px;color:#888780;flex:1;}
+.cor-nums{display:flex;gap:6px;}
+.chip{padding:1px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.chip-g{background:#E1F5EE;color:#085041;}.chip-c{background:#FAECE7;color:#4A1B0C;}
+.ftabs{display:flex;background:#F5F5F3;border-radius:20px;padding:3px;margin:10px 14px 12px;}
+.ftab{flex:1;padding:6px;text-align:center;font-size:11px;font-weight:500;border-radius:16px;cursor:pointer;color:#888780;-webkit-tap-highlight-color:transparent;}
+.ftab.active{background:#fff;color:#0F6E56;}
+.ac-wrap{position:relative;}
+.ac-list{background:#fff;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;margin-top:4px;display:none;overflow:hidden;position:relative;z-index:100;}
+.ac-list.open{display:block;}
+.ac-item{padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:0.5px solid rgba(0,0,0,0.06);-webkit-tap-highlight-color:transparent;}
+.ac-item:last-child{border-bottom:none;}
+.ac-chassi{font-family:monospace;font-size:11px;color:#888780;}
+.ac-info{font-size:12px;font-weight:500;margin-bottom:1px;}
+.form-wrap{padding:14px;display:flex;flex-direction:column;gap:10px;}
+.flbl{font-size:11px;font-weight:500;color:#888780;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+input,select{padding:10px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.2);font-size:13px;background:#fff;color:#1a1a1a;width:100%;-webkit-appearance:none;}
+input:focus,select:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15);}
+.btn-p{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;background:#1D9E75;color:#fff;-webkit-tap-highlight-color:transparent;}
+.btn-p:active{opacity:0.85;}
+.btn-danger{background:#D85A30;}
+.saida-preview{background:#F5F5F3;border-radius:8px;padding:10px 12px;display:none;}
+.sp-modelo{font-size:13px;font-weight:500;margin-bottom:3px;}
+.sp-info{font-size:11px;color:#888780;}
+.ant-row{padding:10px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;}
+.ant-row:last-child{border-bottom:none;}
+.ant-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ant-info{flex:1;min-width:0;}
+.ant-name{font-size:13px;font-weight:500;}
+.ant-sub{font-size:10px;color:#888780;margin-top:1px;font-family:monospace;}
+.badge{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.b-g{background:#E1F5EE;color:#085041;}.b-c{background:#FAECE7;color:#4A1B0C;}.b-a{background:#FAEEDA;color:#633806;}
+.legend{display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:#888780;}
+.legend span{display:flex;align-items:center;gap:4px;}
+.ldot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.chart-pad{padding:12px 14px;}
+.exp-option{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.exp-option:last-child{border-bottom:none;}
+.exp-option:active{background:#F5F5F3;}
+.exp-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.exp-info{flex:1;}
+.exp-title{font-size:13px;font-weight:500;}
+.exp-sub{font-size:11px;color:#888780;margin-top:1px;}
+.upload-zone{border:1.5px dashed rgba(0,0,0,0.2);border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:12px;}
+.upload-zone.drag{border-color:#1D9E75;background:#E1F5EE;}
+.upload-title{font-size:14px;font-weight:500;margin-bottom:3px;}
+.upload-sub{font-size:12px;color:#888780;}
+.upload-icon{font-size:36px;margin-bottom:8px;display:block;}
+#file-input{display:none;}
+.import-result{display:none;flex-direction:column;gap:6px;}
+.import-result.show{display:flex;}
+.ir-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;}
+.ir-new{background:#E1F5EE;}.ir-upd{background:#E6F1FB;}.ir-skip{background:#F5F5F3;}
+.ir-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:500;}
+.ir-new .ir-icon{background:#9FE1CB;color:#085041;}
+.ir-upd .ir-icon{background:#B5D4F4;color:#042C53;}
+.ir-skip .ir-icon{background:#D3D1C7;color:#5F5E5A;}
+.ir-info{flex:1;font-size:12px;}
+.ir-title{font-weight:500;margin-bottom:1px;}
+.ir-sub{color:#888780;font-size:11px;}
+.ir-chassi{font-family:monospace;font-size:10px;color:#888780;}
+.confirm-bar{display:none;flex-direction:column;gap:8px;margin-top:4px;}
+.confirm-bar.show{display:flex;}
+.rules-list{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.rule-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#888780;}
+.rule-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.empty-state{padding:40px 16px;text-align:center;color:#888780;}
+.empty-icon{font-size:40px;display:block;margin-bottom:10px;}
+.empty-title{font-size:14px;font-weight:500;color:#444441;margin-bottom:4px;}
+.empty-sub{font-size:12px;}
+.veh-item{padding:12px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;}
+.veh-item:last-child{border-bottom:none;}
+.veh-info{flex:1;min-width:0;}
+.veh-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.veh-sub{font-size:11px;color:#888780;margin-top:1px;font-family:monospace;}
+.veh-actions{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.15);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;}
+.icon-btn-del{border-color:rgba(216,90,48,0.3);background:#FAECE7;color:#993C1D;}
+.list-filter{padding:10px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;gap:6px;}
+.lf-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid rgba(0,0,0,0.15);background:#fff;color:#888780;-webkit-tap-highlight-color:transparent;}
+.lf-btn.active{background:#1D9E75;color:#fff;border-color:#1D9E75;}
+.search-wrap{padding:10px 14px;border-bottom:0.5px solid rgba(0,0,0,0.08);}
+.search-input{padding:8px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.2);font-size:13px;background:#fff;color:#1a1a1a;width:100%;}
+.search-input:focus{outline:none;border-color:#1D9E75;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:0 0 20px;}
+.modal-hd{padding:16px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-title{font-size:15px;font-weight:500;}
+.close-btn{width:32px;height:32px;border-radius:50%;border:0.5px solid rgba(0,0,0,0.15);background:#F5F5F3;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.del-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.del-overlay.open{display:flex;}
+.del-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center;}
+.del-title{font-size:16px;font-weight:500;margin-bottom:8px;}
+.del-sub{font-size:13px;color:#888780;margin-bottom:20px;}
+.del-actions{display:flex;gap:8px;}
+.del-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;}
+.del-cancel{background:#F5F5F3;color:#444;}
+.del-confirm{background:#D85A30;color:#fff;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0F6E56;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;display:none;z-index:9999;white-space:nowrap;}
+.toast.show{display:block;}
+.pb{height:20px;}
+</style>
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-logo">🚗</div>
+  <div class="login-title">AutoEstoque</div>
+  <div class="login-sub">Digite o código de acesso para entrar</div>
+  <div class="login-box">
+    <input class="login-input" type="password" id="login-input" placeholder="••••••••" maxlength="20" onkeydown="if(event.key==='Enter')fazerLogin()">
+    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="login-error">Código incorreto. Tente novamente.</div>
+  </div>
+</div>
+
+<!-- SISTEMA PRINCIPAL (oculto até login) -->
+<div id="main-app" style="display:none;">
+<div class="app">
+<div class="header">
+  <div class="header-row">
+    <div><h1>AutoEstoque</h1><p id="hd-data"></p></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="header-num"><span id="hd-est">0</span><small>em estoque</small></div>
+      <button class="logout-btn" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+</div>
+<div class="body">
+  <div class="metrics">
+    <div class="mc"><div class="mc-lbl">Disponíveis</div><div class="mc-val mv-g" id="m-disp">0</div><div class="mc-sub">aguardando venda</div></div>
+    <div class="mc"><div class="mc-lbl">Vendidos</div><div class="mc-val mv-c" id="m-vend">0</div><div class="mc-sub">saídas totais</div></div>
+    <div class="mc"><div class="mc-lbl">Tempo médio</div><div class="mc-val mv-a" id="m-dias">0d</div><div class="mc-sub">dias em estoque</div></div>
+    <div class="mc"><div class="mc-lbl">Total</div><div class="mc-val mv-b" id="m-total">0</div><div class="mc-sub">todos os registros</div></div>
+  </div>
+
+  <div class="section-nav">
+    <div class="nav-pill active" onclick="goSection(this,'s-analise')">Análise</div>
+    <div class="nav-pill" onclick="goSection(this,'s-lista')">Veículos</div>
+    <div class="nav-pill" onclick="goSection(this,'s-graficos')">Gráficos</div>
+    <div class="nav-pill" onclick="goSection(this,'s-antigos')">Mais antigos</div>
+    <div class="nav-pill" onclick="goSection(this,'s-entrada')">+ Entrada</div>
+    <div class="nav-pill" onclick="goSection(this,'s-saida')">Registrar saída</div>
+    <div class="nav-pill" onclick="goSection(this,'s-dados')">Dados</div>
+  </div>
+
+  <div class="section active" id="s-analise">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Modelo → versão → cor</span></div>
+      <div class="ftabs">
+        <div class="ftab active" onclick="setFtab(this,'todos')">Todos</div>
+        <div class="ftab" onclick="setFtab(this,'disp')">Disponíveis</div>
+        <div class="ftab" onclick="setFtab(this,'vend')">Vendidos</div>
+      </div>
+      <div id="hierarquia"></div>
+    </div>
+  </div>
+
+  <div class="section" id="s-lista">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Todos os veículos</span><span id="lista-count" style="font-size:12px;color:#888780;"></span></div>
+      <div class="search-wrap"><input class="search-input" id="lista-search" placeholder="Buscar chassi, modelo, cor..." oninput="renderLista()"></div>
+      <div class="list-filter">
+        <div class="lf-btn active" onclick="setListaFiltro(this,'todos')">Todos</div>
+        <div class="lf-btn" onclick="setListaFiltro(this,'disp')">Disponíveis</div>
+        <div class="lf-btn" onclick="setListaFiltro(this,'vend')">Vendidos</div>
+      </div>
+      <div id="lista-veiculos"></div>
+    </div>
+    <div class="pb"></div>
+  </div>
+
+  <div class="section" id="s-graficos">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Entradas vs saídas por mês</span></div>
+      <div class="chart-pad">
+        <div class="legend"><span><span class="ldot" style="background:#5DCAA5;"></span>Entradas</span><span><span class="ldot" style="background:#F0997B;"></span>Saídas</span></div>
+        <div style="position:relative;height:180px;"><canvas id="ch-mensal"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Estoque atual por modelo</span></div>
+      <div class="chart-pad"><div style="position:relative;height:220px;"><canvas id="ch-modelo"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Giro de estoque (%)</span></div>
+      <div class="chart-pad"><div style="position:relative;height:180px;"><canvas id="ch-giro"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="section" id="s-antigos">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Mais antigos disponíveis</span></div>
+      <div id="list-antigos"></div>
+    </div>
+  </div>
+
+  <div class="section" id="s-entrada">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Registrar entrada</span></div>
+      <div class="form-wrap">
+        <div class="fgroup"><label class="flbl">Chassi *</label><input id="e-chassi" placeholder="Ex: 9BW000000001" style="text-transform:uppercase;" autocomplete="off"></div>
+        <div class="fgroup"><label class="flbl">Modelo *</label><input id="e-modelo" placeholder="Ex: HB20" list="dl-mod" autocomplete="off"><datalist id="dl-mod"></datalist></div>
+        <div class="fgroup"><label class="flbl">Versão</label><input id="e-versao" placeholder="Ex: Vision 1.0" list="dl-ver" autocomplete="off"><datalist id="dl-ver"></datalist></div>
+        <div class="fgroup"><label class="flbl">Cor *</label><input id="e-cor" placeholder="Ex: Branco Polar" list="dl-cor" autocomplete="off"><datalist id="dl-cor"></datalist></div>
+        <div class="fgroup"><label class="flbl">Ano</label><input id="e-ano" placeholder="Ex: 2025" type="number" min="2000" max="2030"></div>
+        <div class="fgroup"><label class="flbl">Data de entrada</label><input id="e-data" type="date"></div>
+        <button class="btn-p" onclick="addVehicle()">&#10003; Confirmar entrada</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="s-saida">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Registrar saída</span></div>
+      <div class="form-wrap">
+        <div class="fgroup">
+          <label class="flbl">Buscar pelo chassi</label>
+          <div class="ac-wrap">
+            <input id="s-chassi" placeholder="Digite o chassi..." style="text-transform:uppercase;" oninput="buscaChassi()" autocomplete="off">
+            <div class="ac-list" id="ac-list"></div>
+          </div>
+        </div>
+        <div class="saida-preview" id="saida-preview">
+          <div class="sp-modelo" id="sp-modelo"></div>
+          <div class="sp-info" id="sp-info"></div>
+          <div style="margin-top:6px;" id="sp-dias"></div>
+        </div>
+        <div class="fgroup"><label class="flbl">Data de saída</label><input id="s-data" type="date"></div>
+        <button class="btn-p btn-danger" onclick="registrarSaida()">&#8593; Confirmar saída</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="s-dados">
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Exportar XLS</span></div>
+      <div class="exp-option" onclick="exportXLS('todos')"><div class="exp-icon" style="background:#E1F5EE;">&#8645;</div><div class="exp-info"><div class="exp-title">Base completa</div><div class="exp-sub">Todos os veículos</div></div><span style="color:#888780;">&#8595;</span></div>
+      <div class="exp-option" onclick="exportXLS('disp')"><div class="exp-icon" style="background:#E6F1FB;">&#128663;</div><div class="exp-info"><div class="exp-title">Somente disponíveis</div><div class="exp-sub">Estoque atual em aberto</div></div><span style="color:#888780;">&#8595;</span></div>
+      <div class="exp-option" onclick="exportXLS('vend')"><div class="exp-icon" style="background:#FAECE7;">&#128444;</div><div class="exp-info"><div class="exp-title">Somente vendidos</div><div class="exp-sub">Histórico de saídas</div></div><span style="color:#888780;">&#8595;</span></div>
+      <div class="exp-option" onclick="exportXLS('resumo')"><div class="exp-icon" style="background:#FAEEDA;">&#9783;</div><div class="exp-info"><div class="exp-title">Resumo modelo / versão / cor</div><div class="exp-sub">Igual à sua tabela dinâmica</div></div><span style="color:#888780;">&#8595;</span></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-hd-title">Importar XLS</span></div>
+      <div style="padding:12px 14px 0;">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+          <span class="upload-icon">&#128196;</span>
+          <div class="upload-title">Tocar para selecionar planilha</div>
+          <div class="upload-sub">.xlsx ou .xls exportado deste sistema</div>
+        </div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+      </div>
+      <div class="import-result" id="import-result" style="padding:0 14px;"></div>
+      <div class="confirm-bar" id="confirm-bar" style="padding:12px 14px;">
+        <button class="btn-p" onclick="confirmarImport()"><span id="btn-txt">Confirmar importação</span></button>
+        <button class="btn-p" style="background:#F5F5F3;color:#444;border:0.5px solid rgba(0,0,0,0.15);" onclick="cancelarImport()">Cancelar</button>
+      </div>
+      <div class="card-hd" style="border-top:0.5px solid rgba(0,0,0,0.08);border-bottom:none;margin-top:8px;"><span class="card-hd-title" style="font-size:12px;color:#888780;">Regras de importação</span></div>
+      <div class="rules-list">
+        <div class="rule-item"><div class="rule-dot" style="background:#1D9E75;"></div><span>Chassi novo → entra como nova linha</span></div>
+        <div class="rule-item"><div class="rule-dot" style="background:#378ADD;"></div><span>Chassi existente com data de saída → atualiza só a saída</span></div>
+        <div class="rule-item"><div class="rule-dot" style="background:#378ADD;"></div><span>Outros campos diferentes → atualiza só o que mudou</span></div>
+        <div class="rule-item"><div class="rule-dot" style="background:#888780;"></div><span>Chassi no sistema mas não na planilha → mantém</span></div>
+        <div class="rule-item"><div class="rule-dot" style="background:#D85A30;"></div><span>Remoção só é possível dentro do sistema</span></div>
+      </div>
+    </div>
+    <div class="pb"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">Editar veículo</span>
+      <button class="close-btn" onclick="fecharModal()">&#10005;</button>
+    </div>
+    <div class="form-wrap">
+      <input type="hidden" id="edit-id">
+      <div class="fgroup"><label class="flbl">Chassi</label><input id="edit-chassi" style="text-transform:uppercase;background:#F5F5F3;color:#888780;" readonly></div>
+      <div class="fgroup"><label class="flbl">Modelo *</label><input id="edit-modelo" list="dl-mod-e" autocomplete="off"><datalist id="dl-mod-e"></datalist></div>
+      <div class="fgroup"><label class="flbl">Versão</label><input id="edit-versao" list="dl-ver-e" autocomplete="off"><datalist id="dl-ver-e"></datalist></div>
+      <div class="fgroup"><label class="flbl">Cor *</label><input id="edit-cor" list="dl-cor-e" autocomplete="off"><datalist id="dl-cor-e"></datalist></div>
+      <div class="fgroup"><label class="flbl">Ano</label><input id="edit-ano" type="number" min="2000" max="2030"></div>
+      <div class="fgroup"><label class="flbl">Data de entrada</label><input id="edit-entrada" type="date"></div>
+      <div class="fgroup"><label class="flbl">Data de saída</label><input id="edit-saida" type="date"></div>
+      <button class="btn-p" onclick="salvarEdicao()">&#10003; Salvar alterações</button>
+      <button class="btn-p" style="background:#F5F5F3;color:#444;border:0.5px solid rgba(0,0,0,0.15);" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMAR EXCLUSÃO -->
+<div class="del-overlay" id="del-overlay">
+  <div class="del-box">
+    <div class="del-title">Excluir veículo?</div>
+    <div class="del-sub" id="del-sub">Esta ação não pode ser desfeita.</div>
+    <div class="del-actions">
+      <button class="del-cancel" onclick="fecharDel()">Cancelar</button>
+      <button class="del-confirm" onclick="confirmarDel()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var SENHA='jetour1234';
+var vehicles=[],nid=1,ftab='todos',listaFiltro='todos',selectedSaidaId=null,charts={},openModelos=new Set(),pendingImport=[],delTargetId=null;
+
+function fazerLogin(){
+  var v=document.getElementById('login-input').value;
+  if(v===SENHA){
+    sessionStorage.setItem('ae_auth','ok');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    load();renderAll();
+  } else {
+    document.getElementById('login-error').classList.add('show');
+    document.getElementById('login-input').value='';
+    setTimeout(function(){document.getElementById('login-error').classList.remove('show');},3000);
+  }
+}
+
+function fazerLogout(){
+  sessionStorage.removeItem('ae_auth');
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-input').value='';
+}
+
+function verificarSessao(){
+  if(sessionStorage.getItem('ae_auth')==='ok'){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    load();renderAll();
+  }
+}
+
+function dias(e,s){return Math.round((new Date(s||Date.now())-new Date(e))/86400000);}
+function today(){return new Date().toISOString().split('T')[0].replace(/-/g,'');}
+function save(){try{localStorage.setItem('autoestoque_v1',JSON.stringify({vehicles:vehicles,nid:nid}));}catch(e){}}
+function load(){try{var d=localStorage.getItem('autoestoque_v1');if(d){var p=JSON.parse(d);vehicles=p.vehicles||[];nid=p.nid||1;}}catch(e){}}
+
+function renderMetrics(){
+  var d=vehicles.filter(function(v){return!v.saida;}),ve=vehicles.filter(function(v){return!!v.saida;});
+  document.getElementById('hd-est').textContent=d.length;
+  document.getElementById('m-disp').textContent=d.length;
+  document.getElementById('m-vend').textContent=ve.length;
+  document.getElementById('m-total').textContent=vehicles.length;
+  var ts=ve.map(function(v){return dias(v.entrada,v.saida);});
+  document.getElementById('m-dias').textContent=(ts.length?Math.round(ts.reduce(function(a,b){return a+b;},0)/ts.length):0)+'d';
+  document.getElementById('hd-data').textContent=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+function setFtab(btn,tab){document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');ftab=tab;renderHierarquia();}
+
+function renderHierarquia(){
+  var tree={};
+  vehicles.forEach(function(v){
+    if(ftab==='disp'&&v.saida)return;if(ftab==='vend'&&!v.saida)return;
+    if(!tree[v.modelo])tree[v.modelo]={};if(!tree[v.modelo][v.versao||''])tree[v.modelo][v.versao||'']={};
+    if(!tree[v.modelo][v.versao||''][v.cor])tree[v.modelo][v.versao||''][v.cor]={disp:0,vend:0};
+    if(v.saida)tree[v.modelo][v.versao||''][v.cor].vend++;else tree[v.modelo][v.versao||''][v.cor].disp++;
+  });
+  var html='',keys=Object.keys(tree).sort();
+  if(!keys.length){document.getElementById('hierarquia').innerHTML='<div class="empty-state"><span class="empty-icon">&#128663;</span><div class="empty-title">Nenhum veículo cadastrado</div><div class="empty-sub">Vá em "+ Entrada" para cadastrar o primeiro</div></div>';return;}
+  keys.forEach(function(modelo){
+    var versoes=tree[modelo],tD=0,tV=0;
+    Object.values(versoes).forEach(function(cores){Object.values(cores).forEach(function(x){tD+=x.disp;tV+=x.vend;});});
+    var isOpen=openModelos.has(modelo);
+    html+='<div class="modelo-bloco"><div class="modelo-row" onclick="toggleModelo(\''+modelo.replace(/'/g,"\\'")+'\')"><span style="font-size:14px;color:#888780;">'+(isOpen?'&#9660;':'&#9654;')+'</span><span class="modelo-nome">'+modelo+'</span><span class="chip chip-g" style="margin-right:4px;">'+tD+'</span>'+(tV>0?'<span class="chip chip-c">'+tV+'v</span>':'')+'</div><div class="modelo-body'+(isOpen?' open':'')+'">';
+    Object.keys(versoes).sort().forEach(function(versao){
+      var cores=versoes[versao],vD=0,vV=0;Object.values(cores).forEach(function(x){vD+=x.disp;vV+=x.vend;});
+      html+='<div class="versao-bloco"><div class="versao-row"><span style="font-size:13px;color:#888780;">&#9135;</span><span class="versao-nome">'+(versao||'—')+'</span><span class="chip chip-g" style="margin-right:4px;">'+vD+'</span>'+(vV>0?'<span class="chip chip-c">'+vV+'v</span>':'')+'</div>';
+      Object.keys(cores).sort().forEach(function(cor){
+        var nums=cores[cor];
+        html+='<div class="cor-row"><span class="cor-dot" style="background:#888780;border:0.5px solid rgba(0,0,0,0.1);"></span><span class="cor-nome">'+cor+'</span><div class="cor-nums">'+(nums.disp>0?'<span class="chip chip-g">'+nums.disp+'</span>':'')+(nums.vend>0?'<span class="chip chip-c">'+nums.vend+'v</span>':'')+'</div></div>';
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('hierarquia').innerHTML=html;
+}
+
+function toggleModelo(m){if(openModelos.has(m))openModelos.delete(m);else openModelos.add(m);renderHierarquia();}
+
+function setListaFiltro(btn,f){document.querySelectorAll('.lf-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');listaFiltro=f;renderLista();}
+
+function renderLista(){
+  var q=(document.getElementById('lista-search').value||'').toLowerCase();
+  var list=vehicles.filter(function(v){
+    if(listaFiltro==='disp'&&v.saida)return false;
+    if(listaFiltro==='vend'&&!v.saida)return false;
+    if(q&&!v.chassi.toLowerCase().includes(q)&&!v.modelo.toLowerCase().includes(q)&&!(v.cor||'').toLowerCase().includes(q)&&!(v.versao||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('lista-count').textContent=list.length+' veículo'+(list.length!==1?'s':'');
+  if(!list.length){document.getElementById('lista-veiculos').innerHTML='<div class="empty-state"><span class="empty-icon">&#128269;</span><div class="empty-title">Nenhum resultado</div></div>';return;}
+  document.getElementById('lista-veiculos').innerHTML=list.map(function(v){
+    return '<div class="veh-item"><div class="veh-info"><div class="veh-name">'+v.modelo+' '+v.versao+' — '+v.cor+'</div><div class="veh-sub">'+v.chassi+(v.ano?' · '+v.ano:'')+' · '+(v.saida?'Vendido':'Disponível')+'</div></div><div class="veh-actions"><button class="icon-btn" onclick="abrirEdicao('+v.id+')" title="Editar">&#9998;</button><button class="icon-btn icon-btn-del" onclick="pedirDel('+v.id+')" title="Excluir">&#128465;</button></div></div>';
+  }).join('');
+}
+
+function abrirEdicao(id){
+  var v=vehicles.find(function(x){return x.id===id;});if(!v)return;
+  document.getElementById('edit-id').value=v.id;
+  document.getElementById('edit-chassi').value=v.chassi;
+  document.getElementById('edit-modelo').value=v.modelo||'';
+  document.getElementById('edit-versao').value=v.versao||'';
+  document.getElementById('edit-cor').value=v.cor||'';
+  document.getElementById('edit-ano').value=v.ano||'';
+  document.getElementById('edit-entrada').value=v.entrada||'';
+  document.getElementById('edit-saida').value=v.saida||'';
+  updateEditDatalist();
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function fecharModal(){document.getElementById('modal-editar').classList.remove('open');}
+
+function salvarEdicao(){
+  var id=parseInt(document.getElementById('edit-id').value);
+  var v=vehicles.find(function(x){return x.id===id;});if(!v)return;
+  var modelo=document.getElementById('edit-modelo').value.trim();
+  var cor=document.getElementById('edit-cor').value.trim();
+  if(!modelo||!cor){showToast('Modelo e cor são obrigatórios',true);return;}
+  v.modelo=modelo;v.versao=document.getElementById('edit-versao').value.trim();
+  v.cor=cor;v.ano=document.getElementById('edit-ano').value;
+  v.entrada=document.getElementById('edit-entrada').value;
+  var saida=document.getElementById('edit-saida').value;v.saida=saida||null;
+  fecharModal();save();renderAll();showToast('Veículo atualizado: '+v.chassi);
+}
+
+function pedirDel(id){
+  delTargetId=id;
+  var v=vehicles.find(function(x){return x.id===id;});
+  document.getElementById('del-sub').textContent=(v?v.chassi+' — '+v.modelo+' '+v.versao+'\n':'')+' Esta ação não pode ser desfeita.';
+  document.getElementById('del-overlay').classList.add('open');
+}
+function fecharDel(){document.getElementById('del-overlay').classList.remove('open');delTargetId=null;}
+function confirmarDel(){
+  if(!delTargetId)return;
+  vehicles=vehicles.filter(function(v){return v.id!==delTargetId;});
+  fecharDel();save();renderAll();showToast('Veículo excluído');
+}
+
+function buscaChassi(){
+  var q=document.getElementById('s-chassi').value.trim().toUpperCase();
+  var list=document.getElementById('ac-list');
+  if(q.length<2){list.classList.remove('open');document.getElementById('saida-preview').style.display='none';selectedSaidaId=null;return;}
+  var found=vehicles.filter(function(v){return!v.saida&&v.chassi.toUpperCase().includes(q);}).slice(0,6);
+  if(!found.length){list.classList.remove('open');return;}
+  list.innerHTML=found.map(function(v){return '<div class="ac-item" onclick="selecionarVeiculo('+v.id+')"><div class="ac-info">'+v.modelo+' '+v.versao+' — '+v.cor+'</div><div class="ac-chassi">'+v.chassi+' · '+dias(v.entrada,null)+'d em estoque</div></div>';}).join('');
+  list.classList.add('open');
+}
+
+function selecionarVeiculo(id){
+  var v=vehicles.find(function(x){return x.id===id;});if(!v)return;
+  selectedSaidaId=id;
+  document.getElementById('s-chassi').value=v.chassi;
+  document.getElementById('ac-list').classList.remove('open');
+  document.getElementById('sp-modelo').textContent=v.modelo+' '+v.versao;
+  document.getElementById('sp-info').textContent=v.chassi+' · '+v.cor+(v.ano?' · '+v.ano:'');
+  var d=dias(v.entrada,null),bc=d>90?'b-c':d>45?'b-a':'b-g';
+  document.getElementById('sp-dias').innerHTML='<span class="badge '+bc+'">'+d+'d em estoque desde '+v.entrada+'</span>';
+  document.getElementById('saida-preview').style.display='block';
+}
+
+document.addEventListener('click',function(e){
+  var sc=document.getElementById('s-chassi'),al=document.getElementById('ac-list');
+  if(sc&&al&&!sc.contains(e.target)&&!al.contains(e.target))al.classList.remove('open');
+});
+
+function registrarSaida(){
+  if(!selectedSaidaId){showToast('Busque e selecione um veículo',true);return;}
+  var v=vehicles.find(function(x){return x.id===selectedSaidaId;});
+  v.saida=document.getElementById('s-data').value||new Date().toISOString().split('T')[0];
+  selectedSaidaId=null;
+  document.getElementById('s-chassi').value='';
+  document.getElementById('saida-preview').style.display='none';
+  save();renderAll();showToast('Saída registrada: '+v.chassi);
+  goSection(document.querySelector('.nav-pill'),'s-analise');
+}
+
+function addVehicle(){
+  var chassi=document.getElementById('e-chassi').value.trim().toUpperCase();
+  var modelo=document.getElementById('e-modelo').value.trim();
+  var cor=document.getElementById('e-cor').value.trim();
+  if(!chassi||!modelo||!cor){showToast('Preencha chassi, modelo e cor',true);return;}
+  if(vehicles.find(function(v){return v.chassi===chassi;})){showToast('Chassi já cadastrado',true);return;}
+  vehicles.push({id:nid++,chassi:chassi,modelo:modelo,versao:document.getElementById('e-versao').value.trim(),cor:cor,ano:document.getElementById('e-ano').value,entrada:document.getElementById('e-data').value||new Date().toISOString().split('T')[0],saida:null});
+  ['e-chassi','e-modelo','e-versao','e-cor','e-ano'].forEach(function(id){document.getElementById(id).value='';});
+  save();renderAll();showToast('Entrada registrada: '+chassi);
+  goSection(document.querySelector('.nav-pill'),'s-analise');
+}
+
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag');var f=e.dataTransfer.files[0];if(f)handleFile(f);}
+function handleFile(file){
+  if(!file)return;
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(['xlsx','xls','csv'].indexOf(ext)<0){showToast('Use .xlsx, .xls ou .csv',true);return;}
+  var reader=new FileReader();
+  reader.onload=function(e){try{var wb=XLSX.read(e.target.result,{type:'array',cellDates:true});var ws=wb.Sheets[wb.SheetNames[0]];var raw=XLSX.utils.sheet_to_json(ws,{defval:''});processImport(raw);}catch(err){showToast('Erro ao ler arquivo',true);}};
+  reader.readAsArrayBuffer(file);
+}
+function normalizeDate(val){
+  if(!val)return null;if(val instanceof Date)return val.toISOString().split('T')[0];
+  var s=String(val).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  var parts=s.split(/[\/\-\.]/);if(parts.length===3){if(parts[0].length===4)return parts[0]+'-'+parts[1].padStart(2,'0')+'-'+parts[2].padStart(2,'0');return parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0');}return null;
+}
+function findCol(row,candidates){
+  for(var i=0;i<candidates.length;i++){var c=candidates[i];var k=Object.keys(row).find(function(k){return k.toLowerCase().replace(/\s/g,'').includes(c.toLowerCase().replace(/\s/g,''));});if(k&&row[k]!=='')return String(row[k]).trim();}return '';
+}
+function processImport(rows){
+  if(!rows.length){showToast('Planilha vazia',true);return;}
+  var result=[];
+  rows.forEach(function(row){
+    var chassi=findCol(row,['Chassi','chassi','CHASSI']).toUpperCase();if(!chassi||chassi.length<5)return;
+    var existing=vehicles.find(function(v){return v.chassi===chassi;});
+    var rowData={chassi:chassi,modelo:findCol(row,['Modelo','modelo']),versao:findCol(row,['Versão','Versao','versao','versão']),cor:findCol(row,['Cor','cor']),ano:findCol(row,['Ano','ano','Ano modelo']),entrada:normalizeDate(findCol(row,['Data Entrada','data_entrada','Data entrada','Entrada'])),saida:normalizeDate(findCol(row,['Data Saída','data_saida','Data saida','Saída','saida'])||null)};
+    if(!existing){if(!rowData.modelo||!rowData.cor){result.push({tipo:'erro',chassi:chassi,motivo:'Modelo e cor obrigatórios'});return;}result.push({tipo:'novo',chassi:chassi,data:rowData,desc:rowData.modelo+' '+rowData.versao+' — '+rowData.cor});}
+    else{var changes=[];if(rowData.saida&&!existing.saida)changes.push({campo:'saida',valor:rowData.saida,label:'data de saída: '+rowData.saida});if(rowData.modelo&&rowData.modelo!==existing.modelo)changes.push({campo:'modelo',valor:rowData.modelo,label:'modelo: '+rowData.modelo});if(rowData.versao&&rowData.versao!==existing.versao)changes.push({campo:'versao',valor:rowData.versao,label:'versão: '+rowData.versao});if(rowData.cor&&rowData.cor!==existing.cor)changes.push({campo:'cor',valor:rowData.cor,label:'cor: '+rowData.cor});if(rowData.ano&&rowData.ano!==existing.ano)changes.push({campo:'ano',valor:rowData.ano,label:'ano: '+rowData.ano});if(changes.length>0){result.push({tipo:'atualiza',chassi:chassi,existingId:existing.id,changes:changes,desc:existing.modelo+' '+existing.versao,changeDesc:changes.map(function(c){return c.label;}).join(', ')});}else{result.push({tipo:'sem_mudanca',chassi:chassi,desc:existing.modelo+' '+existing.versao});}}
+  });
+  pendingImport=result;showImportPreview(result);
+}
+function showImportPreview(result){
+  var novos=result.filter(function(r){return r.tipo==='novo';}),atualizados=result.filter(function(r){return r.tipo==='atualiza';}),semMudanca=result.filter(function(r){return r.tipo==='sem_mudanca';}),erros=result.filter(function(r){return r.tipo==='erro';});
+  var html='<div style="padding-top:8px;"></div>';
+  if(novos.length){html+='<div style="font-size:11px;font-weight:500;color:#0F6E56;padding:4px 0;">+ '+novos.length+' novo'+(novos.length>1?'s':'')+' a adicionar</div>';novos.slice(0,3).forEach(function(r){html+='<div class="ir-item ir-new"><div class="ir-icon">+</div><div class="ir-info"><div class="ir-title">'+r.desc+'</div><div class="ir-chassi">'+r.chassi+'</div></div></div>';});if(novos.length>3)html+='<div style="font-size:11px;color:#888780;padding:2px 0;">+'+(novos.length-3)+' outros...</div>';}
+  if(atualizados.length){html+='<div style="font-size:11px;font-weight:500;color:#185FA5;padding:8px 0 4px;">&#9998; '+atualizados.length+' a atualizar</div>';atualizados.slice(0,3).forEach(function(r){html+='<div class="ir-item ir-upd"><div class="ir-icon">&#9998;</div><div class="ir-info"><div class="ir-title">'+r.desc+'</div><div class="ir-sub">'+r.changeDesc+'</div><div class="ir-chassi">'+r.chassi+'</div></div></div>';});if(atualizados.length>3)html+='<div style="font-size:11px;color:#888780;padding:2px 0;">+'+(atualizados.length-3)+' outros...</div>';}
+  if(semMudanca.length){html+='<div class="ir-item ir-skip" style="margin-top:6px;"><div class="ir-icon">&#8212;</div><div class="ir-info"><div class="ir-title">'+semMudanca.length+' sem alteração</div><div class="ir-sub">Já atualizados no sistema</div></div></div>';}
+  erros.forEach(function(r){html+='<div class="ir-item" style="background:#FAECE7;margin-top:4px;"><div class="ir-icon" style="background:#F5C4B3;color:#4A1B0C;">!</div><div class="ir-info"><div class="ir-title">'+r.chassi+'</div><div class="ir-sub">'+r.motivo+'</div></div></div>';});
+  var resultEl=document.getElementById('import-result');resultEl.innerHTML=html;resultEl.classList.add('show');
+  var total=novos.length+atualizados.length,cb=document.getElementById('confirm-bar');
+  if(total>0){document.getElementById('btn-txt').textContent='Confirmar ('+total+' alteraç'+(total>1?'ões':'ão')+')';cb.classList.add('show');}else{cb.classList.remove('show');}
+  document.getElementById('upload-zone').style.display='none';
+}
+function confirmarImport(){
+  var novos=0,atualizados=0;
+  pendingImport.forEach(function(r){if(r.tipo==='novo'){vehicles.push(Object.assign({id:nid++},r.data,{saida:r.data.saida||null}));novos++;}else if(r.tipo==='atualiza'){var v=vehicles.find(function(x){return x.id===r.existingId;});if(v){r.changes.forEach(function(c){v[c.campo]=c.valor;});atualizados++;}}});
+  pendingImport=[];cancelarImport();save();renderAll();showToast('Importado: '+novos+' novo'+(novos!==1?'s':'')+', '+atualizados+' atualizado'+(atualizados!==1?'s':''));
+  goSection(document.querySelector('.nav-pill'),'s-analise');
+}
+function cancelarImport(){pendingImport=[];document.getElementById('import-result').classList.remove('show');document.getElementById('import-result').innerHTML='';document.getElementById('confirm-bar').classList.remove('show');document.getElementById('upload-zone').style.display='block';document.getElementById('file-input').value='';}
+
+function exportXLS(tipo){
+  var wb=XLSX.utils.book_new();
+  if(tipo==='resumo'){var tree={};vehicles.forEach(function(v){var k=v.modelo+'|'+v.versao+'|'+v.cor;if(!tree[k])tree[k]={modelo:v.modelo,versao:v.versao,cor:v.cor,disp:0,vend:0,total:0};tree[k].total++;if(v.saida)tree[k].vend++;else tree[k].disp++;});var rows=[['Modelo','Versão','Cor','Disponíveis','Vendidos','Total']];var lm='',lv='';Object.values(tree).sort(function(a,b){return a.modelo.localeCompare(b.modelo)||a.versao.localeCompare(b.versao)||a.cor.localeCompare(b.cor);}).forEach(function(r){rows.push([r.modelo===lm?'':r.modelo,r.versao===lv&&r.modelo===lm?'':r.versao,r.cor,r.disp,r.vend,r.total]);lm=r.modelo;lv=r.versao;});var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:16},{wch:18},{wch:18},{wch:13},{wch:10},{wch:8}];XLSX.utils.book_append_sheet(wb,ws,'Resumo');XLSX.writeFile(wb,'resumo_estoque_'+today()+'.xlsx');showToast('Resumo exportado');return;}
+  var data=tipo==='disp'?vehicles.filter(function(v){return!v.saida;}):tipo==='vend'?vehicles.filter(function(v){return!!v.saida;}):vehicles;
+  var rows=[['Chassi','Modelo','Versão','Cor','Ano','Data Entrada','Data Saída','Status','Dias em Estoque']];
+  data.forEach(function(v){rows.push([v.chassi,v.modelo,v.versao||'',v.cor,v.ano||'',v.entrada||'',v.saida||'',v.saida?'Vendido':'Disponível',dias(v.entrada,v.saida)]);});
+  var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:18},{wch:12},{wch:18},{wch:18},{wch:6},{wch:14},{wch:14},{wch:12},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws,tipo==='todos'?'Base Completa':tipo==='disp'?'Disponíveis':'Vendidos');
+  XLSX.writeFile(wb,'estoque_'+tipo+'_'+today()+'.xlsx');showToast('Exportado: '+data.length+' veículos');
+}
+
+function renderAntigos(){
+  var s=vehicles.filter(function(v){return!v.saida&&v.entrada;}).sort(function(a,b){return new Date(a.entrada)-new Date(b.entrada);}).slice(0,6);
+  if(!s.length){document.getElementById('list-antigos').innerHTML='<div class="empty-state"><span class="empty-icon">&#128663;</span><div class="empty-title">Nenhum em estoque</div></div>';return;}
+  document.getElementById('list-antigos').innerHTML=s.map(function(v){var d=dias(v.entrada,null),bc=d>90?'b-c':d>45?'b-a':'b-g',ic=d>90?'#FAECE7':d>45?'#FAEEDA':'#E1F5EE',cc=d>90?'#993C1D':d>45?'#854F0B':'#0F6E56';return '<div class="ant-row"><div class="ant-icon" style="background:'+ic+';font-size:18px;color:'+cc+';">&#128663;</div><div class="ant-info"><div class="ant-name">'+v.modelo+' '+v.versao+'</div><div class="ant-sub">'+v.chassi+' · '+v.cor+'</div></div><span class="badge '+bc+'">'+d+'d</span></div>';}).join('');
+}
+
+function renderCharts(){
+  var months={};vehicles.forEach(function(v){var m=v.entrada&&v.entrada.slice(0,7);if(m){if(!months[m])months[m]={e:0,s:0};months[m].e++;}});vehicles.forEach(function(v){var m=v.saida&&v.saida.slice(0,7);if(m){if(!months[m])months[m]={e:0,s:0};months[m].s++;}});
+  var keys=Object.keys(months).sort().slice(-7);
+  if(charts.mensal)charts.mensal.destroy();
+  charts.mensal=new Chart(document.getElementById('ch-mensal'),{type:'bar',data:{labels:keys.map(function(k){return k.slice(5)+'/'+k.slice(2,4);}),datasets:[{label:'Entradas',data:keys.map(function(k){return months[k]&&months[k].e||0;}),backgroundColor:'#5DCAA5',borderRadius:3},{label:'Saídas',data:keys.map(function(k){return months[k]&&months[k].s||0;}),backgroundColor:'#F0997B',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},autoSkip:false,maxRotation:0}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
+  var gm={};vehicles.forEach(function(v){if(!gm[v.modelo])gm[v.modelo]={a:0,s:0,e:0};gm[v.modelo].e++;if(v.saida)gm[v.modelo].s++;else gm[v.modelo].a++;});
+  var mk=Object.keys(gm).sort(function(a,b){return gm[b].a-gm[a].a;});
+  if(charts.modelo)charts.modelo.destroy();
+  if(mk.length)charts.modelo=new Chart(document.getElementById('ch-modelo'),{type:'bar',data:{labels:mk,datasets:[{data:mk.map(function(k){return gm[k].a;}),backgroundColor:['#5DCAA5','#378ADD','#EF9F27','#D85A30','#7F77DD','#97C459'],borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:10}}},y:{ticks:{font:{size:11}}}}}});
+  if(charts.giro)charts.giro.destroy();
+  if(mk.length){var giro=mk.map(function(k){return gm[k].e>0?Math.round(gm[k].s/gm[k].e*100):0;});charts.giro=new Chart(document.getElementById('ch-giro'),{type:'bar',data:{labels:mk,datasets:[{data:giro,backgroundColor:giro.map(function(g){return g>=60?'#5DCAA5':g>=30?'#EF9F27':'#F0997B';}),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,max:100,ticks:{font:{size:10},callback:function(v){return v+'%';}}}}}})}
+}
+
+function updateDatalist(){
+  var dl=function(id,vals){var el=document.getElementById(id);if(el)el.innerHTML=[...new Set(vals.filter(Boolean))].map(function(v){return '<option value="'+v+'">';}).join('');};
+  var mods=vehicles.map(function(v){return v.modelo;}),vers=vehicles.map(function(v){return v.versao;}),cors=vehicles.map(function(v){return v.cor;});
+  dl('dl-mod',mods);dl('dl-ver',vers);dl('dl-cor',cors);
+}
+
+function updateEditDatalist(){
+  var dl=function(id,vals){var el=document.getElementById(id);if(el)el.innerHTML=[...new Set(vals.filter(Boolean))].map(function(v){return '<option value="'+v+'">';}).join('');};
+  dl('dl-mod-e',vehicles.map(function(v){return v.modelo;}));
+  dl('dl-ver-e',vehicles.map(function(v){return v.versao;}));
+  dl('dl-cor-e',vehicles.map(function(v){return v.cor;}));
+}
+
+function goSection(pill,sid){
+  document.querySelectorAll('.nav-pill').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  pill.classList.add('active');document.getElementById(sid).classList.add('active');
+  if(sid==='s-graficos')setTimeout(renderCharts,80);
+  if(sid==='s-lista')renderLista();
+  window.scrollTo(0,0);
+}
+
+function renderAll(){renderMetrics();renderHierarquia();renderAntigos();updateDatalist();renderLista();}
+
+var toastT;
+function showToast(msg,err){var t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#A32D2D':'#0F6E56';t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2500);}
+
+document.getElementById('e-data').value=new Date().toISOString().split('T')[0];
+document.getElementById('s-data').value=new Date().toISOString().split('T')[0];
+verificarSessao();
+</script>
+</body>
+</html>
+
